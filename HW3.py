@@ -1,6 +1,9 @@
 # HW3
 # REMINDER: The work in this assignment must be your own original work and must be completed alone.
 
+from ast import expr
+
+
 class Node:
     def __init__(self, value):
         self.value = value  
@@ -55,26 +58,34 @@ class Stack:
 
 
     def isEmpty(self):
-        # YOUR CODE STARTS HERE
-        pass
+        return self.top is None
 
     def __len__(self): 
-        # YOUR CODE STARTS HERE
-        pass
+        count = 0
+        current = self.top
+        while current is not None:
+            count += 1
+            current = current.next
+        return count
 
     def push(self,value):
-        # YOUR CODE STARTS HERE
-        pass
+        new_node = Node(value)
+        new_node.next = self.top
+        self.top = new_node
 
-     
     def pop(self):
         # YOUR CODE STARTS HERE
-        pass
+        if self.isEmpty():
+            return None
+        value = self.top.value
+        self.top = self.top.next
+        return value
 
     def peek(self):
         # YOUR CODE STARTS HERE
-        pass
-
+        if self.isEmpty():
+            return None
+        return self.top.value
 
 #=============================================== Part II ==============================================
 
@@ -82,8 +93,6 @@ class Calculator:
     def __init__(self):
         self.__expr = None
 
-
-    @property
     def getExpr(self):
         return self.__expr
 
@@ -104,11 +113,11 @@ class Calculator:
             >>> x._isNumber('2.56p')
             False
         '''
-        # YOUR CODE STARTS HERE
-        pass
-
-
-
+        try:
+            float(txt)
+            return True
+        except (ValueError, TypeError):
+            return False
 
     def _getPostfix(self, txt):
         '''
@@ -148,11 +157,31 @@ class Calculator:
             >>> x._getPostfix(' 2 * ( 5 + 3 ) ^  2 + ) 1 + 4 (')
             >>> x._getPostfix('2 *      5% + 3       ^ + -2 +1 +4')
         '''
-
-        # YOUR CODE STARTS HERE
-        postfixStack = Stack()  # method must use postfixStack to compute the postfix expression
-        pass
-
+        precedence = {'+': 1, '-': 1, '*': 2, '/': 2, '^': 3}
+        postfixStack = Stack()
+        output = []
+        tokens = txt.split()
+        
+        for token in tokens:
+            if self._isNumber(token):
+                output.append(str(float(token)))
+            elif token == '(':
+                postfixStack.push(token)
+            elif token == ')':
+                while not postfixStack.isEmpty() and postfixStack.peek() != '(':
+                    output.append(postfixStack.pop())
+                if not postfixStack.isEmpty() and postfixStack.peek() == '(':
+                    postfixStack.pop()
+            elif token in precedence:
+                while (not postfixStack.isEmpty() and postfixStack.peek() in precedence and 
+                        precedence[postfixStack.peek()] >= precedence[token]):
+                    output.append(postfixStack.pop())
+                postfixStack.push(token)
+        
+        while not postfixStack.isEmpty():
+            output.append(postfixStack.pop())
+        
+        return ' '.join(output)
 
     @property
     def calculate(self):
@@ -216,10 +245,39 @@ class Calculator:
             print("Argument error in calculate")
             return None
 
-        calcStack = Stack()   # method must use calcStack to compute the  expression
+        calcStack = Stack()   
+        postfix = self._getPostfix(self.__expr)
+        if postfix is None:
+            return None
 
-        # YOUR CODE STARTS HERE
-        pass
+        calcStack = Stack()
+        tokens = postfix.split()
+
+        for token in tokens:
+            if self._isNumber(token):
+                calcStack.push(float(token))
+            else:
+                if len(calcStack) < 2:
+                    return None
+                val2 = calcStack.pop()
+                val1 = calcStack.pop()
+                
+                if token == '+':
+                    calcStack.push(val1 + val2)
+                elif token == '-':
+                    calcStack.push(val1 - val2)
+                elif token == '*':
+                    calcStack.push(val1 * val2)
+                elif token == '/':
+                    if val2 == 0:
+                        return None
+                    calcStack.push(val1 / val2)
+                elif token == '^':
+                    calcStack.push(val1 ** val2)
+
+        if len(calcStack) == 1:
+            return calcStack.pop()
+        return None
 
 #=============================================== Part III ==============================================
 
