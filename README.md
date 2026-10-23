@@ -1,1 +1,283 @@
 # Homework-3
+# HW3
+# REMINDER: The work in this assignment must be your own original work and must be completed alone.
+
+from ast import expr
+
+
+class Node:
+    def __init__(self, value):
+        self.value = value  
+        self.next = None 
+    
+    def __str__(self):
+        return "Node({})".format(self.value) 
+
+    __repr__ = __str__
+                          
+
+#=============================================== Part I ==============================================
+
+class Stack:
+    '''
+        >>> x=Stack()
+        >>> x.pop()
+        >>> x.push(2)
+        >>> x.push(4)
+        >>> x.push(6)
+        >>> x
+        Top:Node(6)
+        Stack:
+        6
+        4
+        2
+        >>> x.pop()
+        6
+        >>> x
+        Top:Node(4)
+        Stack:
+        4
+        2
+        >>> len(x)
+        2
+        >>> x.peek()
+        4
+    '''
+    def __init__(self):
+        self.top = None
+    
+    def __str__(self):
+        temp=self.top
+        out=[]
+        while temp:
+            out.append(str(temp.value))
+            temp=temp.next
+        out='\n'.join(out)
+        return ('Top:{}\nStack:\n{}'.format(self.top,out))
+
+    __repr__=__str__
+
+
+    def isEmpty(self):
+        return self.top is None
+
+    def __len__(self): 
+        count = 0
+        current = self.top
+        while current is not None:
+            count += 1
+            current = current.next
+        return count
+
+    def push(self,value):
+        new_node = Node(value)
+        new_node.next = self.top
+        self.top = new_node
+
+    def pop(self):
+        # YOUR CODE STARTS HERE
+        if self.isEmpty():
+            return None
+        value = self.top.value
+        self.top = self.top.next
+        return value
+
+    def peek(self):
+        # YOUR CODE STARTS HERE
+        if self.isEmpty():
+            return None
+        return self.top.value
+
+#=============================================== Part II ==============================================
+
+class Calculator:
+    def __init__(self):
+        self.__expr = None
+
+    def getExpr(self):
+        return self.__expr
+
+    def setExpr(self, new_expr):
+        if isinstance(new_expr, str):
+            self.__expr=new_expr
+        else:
+            print('setExpr error: Invalid expression')
+            return None
+
+    def _isNumber(self, txt):
+        '''
+            >>> x=Calculator()
+            >>> x._isNumber(' 2.560 ')
+            True
+            >>> x._isNumber('7 56')
+            False
+            >>> x._isNumber('2.56p')
+            False
+        '''
+        try:
+            float(txt)
+            return True
+        except (ValueError, TypeError):
+            return False
+
+    def _getPostfix(self, txt):
+        '''
+            Required: _getPostfix must create and use a Stack for expression processing
+            >>> x=Calculator()
+            >>> x._getPostfix('     2 ^       4')
+            '2.0 4.0 ^'
+            >>> x._getPostfix('          2 ')
+            '2.0'
+            >>> x._getPostfix('2.1        * 5        + 3       ^ 2 +         1 +             4.45')
+            '2.1 5.0 * 3.0 2.0 ^ + 1.0 + 4.45 +'
+            >>> x._getPostfix('2*5.34+3^2+1+4')
+            '2.0 5.34 * 3.0 2.0 ^ + 1.0 + 4.0 +'
+            >>> x._getPostfix('2.1 * 5 + 3 ^ 2 + 1 + 4')
+            '2.1 5.0 * 3.0 2.0 ^ + 1.0 + 4.0 +'
+            >>> x._getPostfix('( .5 )')
+            '0.5'
+            >>> x._getPostfix ('( ( 2 ) )')
+            '2.0'
+            >>> x._getPostfix ('2 * (           ( 5 +-3 ) ^ 2 + (1 + 4 ))')
+            '2.0 5.0 -3.0 + 2.0 ^ 1.0 4.0 + + *'
+            >>> x._getPostfix ('(2 * ( ( 5 + 3) ^ 2 + (1 + 4 )))')
+            '2.0 5.0 3.0 + 2.0 ^ 1.0 4.0 + + *'
+            >>> x._getPostfix ('((2 *((5 + 3) ^ 2 + (1 +4 ))))')
+            '2.0 5.0 3.0 + 2.0 ^ 1.0 4.0 + + *'
+            >>> x._getPostfix('2* (       -5 + 3 ) ^2+ ( 1 +4 )')
+            '2.0 -5.0 3.0 + 2.0 ^ * 1.0 4.0 + +'
+
+            # In invalid expressions, you might print an error message, adjust doctest accordingly
+            # If you are veryfing the expression in calculate before passing to postfix, this cases are not necessary
+
+            >>> x._getPostfix('2 * 5 + 3 ^ + -2 + 1 + 4')
+            >>> x._getPostfix('     2 * 5 + 3  ^ * 2 + 1 + 4')
+            >>> x._getPostfix('2    5')
+            >>> x._getPostfix('25 +')
+            >>> x._getPostfix(' 2 * ( 5      + 3 ) ^ 2 + ( 1 +4 ')
+            >>> x._getPostfix(' 2 * ( 5 + 3 ) ^  2 + ) 1 + 4 (')
+            >>> x._getPostfix('2 *      5% + 3       ^ + -2 +1 +4')
+        '''
+        precedence = {'+': 1, '-': 1, '*': 2, '/': 2, '^': 3}
+        postfixStack = Stack()
+        output = []
+        tokens = txt.split()
+        
+        for token in tokens:
+            if self._isNumber(token):
+                output.append(str(float(token)))
+            elif token == '(':
+                postfixStack.push(token)
+            elif token == ')':
+                while not postfixStack.isEmpty() and postfixStack.peek() != '(':
+                    output.append(postfixStack.pop())
+                if not postfixStack.isEmpty() and postfixStack.peek() == '(':
+                    postfixStack.pop()
+            elif token in precedence:
+                while (not postfixStack.isEmpty() and postfixStack.peek() in precedence and 
+                        precedence[postfixStack.peek()] >= precedence[token]):
+                    output.append(postfixStack.pop())
+                postfixStack.push(token)
+        
+        while not postfixStack.isEmpty():
+            output.append(postfixStack.pop())
+        
+        return ' '.join(output)
+
+    
+
+#=============================================== Part III ==============================================
+
+class AdvancedCalculator:
+    '''
+        >>> C = AdvancedCalculator()
+        >>> C.states == {}
+        True
+        >>> C.setExpression('a = 5;b = 7 + a;a = 7;c = a + b;c = a * 0;return c')
+        >>> C.calculateExpressions() == {'a = 5': {'a': 5.0}, 'b = 7 + a': {'a': 5.0, 'b': 12.0}, 'a = 7': {'a': 7.0, 'b': 12.0}, 'c = a + b': {'a': 7.0, 'b': 12.0, 'c': 19.0}, 'c = a * 0': {'a': 7.0, 'b': 12.0, 'c': 0.0}, '_return_': 0.0}
+        True
+        >>> C.states == {'a': 7.0, 'b': 12.0, 'c': 0.0}
+        True
+        >>> C.setExpression('x1 = 5;x2 = 7 * ( x1 - 1 );x1 = x2 - x1;return x2 + x1 ^ 3')
+        >>> C.states == {}
+        True
+        >>> C.calculateExpressions() == {'x1 = 5': {'x1': 5.0}, 'x2 = 7 * ( x1 - 1 )': {'x1': 5.0, 'x2': 28.0}, 'x1 = x2 - x1': {'x1': 23.0, 'x2': 28.0}, '_return_': 12195.0}
+        True
+        >>> print(C.calculateExpressions())
+        {'x1 = 5': {'x1': 5.0}, 'x2 = 7 * ( x1 - 1 )': {'x1': 5.0, 'x2': 28.0}, 'x1 = x2 - x1': {'x1': 23.0, 'x2': 28.0}, '_return_': 12195.0}
+        >>> C.states == {'x1': 23.0, 'x2': 28.0}
+        True
+        >>> C.setExpression('x1 = 5 * 5 + 97;x2 = 7 * ( x1 / 2 );x1 = x2 * 7 / x1;return x1 * ( x2 - 5 )')
+        >>> C.calculateExpressions() == {'x1 = 5 * 5 + 97': {'x1': 122.0}, 'x2 = 7 * ( x1 / 2 )': {'x1': 122.0, 'x2': 427.0}, 'x1 = x2 * 7 / x1': {'x1': 24.5, 'x2': 427.0}, '_return_': 10339.0}
+        True
+        >>> C.states == {'x1': 24.5, 'x2': 427.0}
+        True
+        >>> C.setExpression('A = 1;B = A + 9;C = A + B;A = 20;D = A + B + C;return D - A')
+        >>> C.calculateExpressions() == {'A = 1': {'A': 1.0}, 'B = A + 9': {'A': 1.0, 'B': 10.0}, 'C = A + B': {'A': 1.0, 'B': 10.0, 'C': 11.0}, 'A = 20': {'A': 20.0, 'B': 10.0, 'C': 11.0}, 'D = A + B + C': {'A': 20.0, 'B': 10.0, 'C': 11.0, 'D': 41.0}, '_return_': 21.0}
+        True
+        >>> C.states == {'A': 20.0, 'B': 10.0, 'C': 11.0, 'D': 41.0}
+        True
+        >>> C.setExpression('A = 1;B = A + 9;2C = A + B;A = 20;D = A + B + C;return D + A')
+        >>> C.calculateExpressions() is None
+        True
+        >>> C.states == {}
+        True
+    '''
+    def __init__(self):
+        self.expressions = ''
+        self.states = {}
+
+    def setExpression(self, expression):
+        self.expressions = expression
+        self.states = {}
+
+    def _isVariable(self, word):
+        '''
+            >>> C = AdvancedCalculator()
+            >>> C._isVariable('volume')
+            True
+            >>> C._isVariable('4volume')
+            False
+            >>> C._isVariable('volume2')
+            True
+            >>> C._isVariable('vol%2')
+            False
+        '''
+        # YOUR CODE STARTS HERE
+        pass
+       
+
+    def _replaceVariables(self, expr):
+        '''
+            >>> C = AdvancedCalculator()
+            >>> C.states = {'x1': 23.0, 'x2': 28.0}
+            >>> C._replaceVariables('1')
+            '1'
+            >>> C._replaceVariables('105 + x')
+            >>> C._replaceVariables('7 * ( x1 - 1 )')
+            '7 * ( 23.0 - 1 )'
+            >>> C._replaceVariables('x2 - x1')
+            '28.0 - 23.0'
+        '''
+        # YOUR CODE STARTS HERE
+        pass
+
+    
+    def calculateExpressions(self):
+        self.states = {} 
+        calcObj = Calculator()     # method must use calcObj to compute each expression
+        # YOUR CODE STARTS HERE
+        pass
+
+
+def run_tests():
+    import doctest
+
+    # Run tests in all docstrings
+    #doctest.testmod(verbose=True)
+    
+    # Run tests per function - Uncomment the next line to run doctest by function. Replace Stack with the name of the function you want to test
+    doctest.run_docstring_examples(Stack, globals(), name='HW3',verbose=True)   
+
+if __name__ == "__main__":
+    run_tests()

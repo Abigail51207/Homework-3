@@ -87,12 +87,15 @@ class Stack:
             return None
         return self.top.value
 
-#=============================================== Part II ==============================================
+
+# ========================================== Part II ==========================================
 
 class Calculator:
     def __init__(self):
         self.__expr = None
 
+
+    @property
     def getExpr(self):
         return self.__expr
 
@@ -157,30 +160,74 @@ class Calculator:
             >>> x._getPostfix(' 2 * ( 5 + 3 ) ^  2 + ) 1 + 4 (')
             >>> x._getPostfix('2 *      5% + 3       ^ + -2 +1 +4')
         '''
-        precedence = {'+': 1, '-': 1, '*': 2, '/': 2, '^': 3}
         postfixStack = Stack()
+        tokens = []
+        i = 0
+        n = len(txt)
+        while i < n:
+            char = txt[i]
+            if char.isspace():
+                i += 1
+            elif char in "+*/^()":
+                tokens.append(char)
+                i += 1
+            elif char == '-':
+                if not tokens or tokens[-1] in "+-*/^(":
+                    i += 1
+                    while i < n and txt[i].isspace():
+                        i += 1
+                    num_str = '-'
+                    while i < n and (txt[i].isdigit() or txt[i] == '.'):
+                        num_str += txt[i]
+                        i += 1
+                    tokens.append(num_str)
+                else:
+                    tokens.append('+')
+                    i += 1
+                    while i < n and txt[i].isspace():
+                        i += 1
+                    num_str = '-'
+                    while i < n and (txt[i].isdigit() or txt[i] == '.'):
+                        num_str += txt[i]
+                        i += 1
+                    tokens.append(num_str)
+            elif char.isdigit() or char == '.':
+                num_str = ''
+                while i < n and (txt[i].isdigit() or txt[i] == '.'):
+                    num_str += txt[i]
+                    i += 1
+                tokens.append(num_str)
+            else:
+                tokens.append(char)
+                i += 1
+        precedence = {'+': 1, '-': 1, '*': 2, '/': 2, '^': 3}
         output = []
-        tokens = txt.split()
-        
         for token in tokens:
             if self._isNumber(token):
-                output.append(str(float(token)))
+                output.append(f"{float(token)}")
             elif token == '(':
                 postfixStack.push(token)
             elif token == ')':
                 while not postfixStack.isEmpty() and postfixStack.peek() != '(':
                     output.append(postfixStack.pop())
-                if not postfixStack.isEmpty() and postfixStack.peek() == '(':
-                    postfixStack.pop()
+                if postfixStack.isEmpty():
+                    return None
+                postfixStack.pop()
             elif token in precedence:
-                while (not postfixStack.isEmpty() and postfixStack.peek() in precedence and 
-                        precedence[postfixStack.peek()] >= precedence[token]):
+                while (not postfixStack.isEmpty() and 
+                       postfixStack.peek() != '(' and 
+                       postfixStack.peek() in precedence and 
+                       (precedence[postfixStack.peek()] > precedence[token] or 
+                        (precedence[postfixStack.peek()] == precedence[token] and token != '^'))):
                     output.append(postfixStack.pop())
                 postfixStack.push(token)
-        
+            else:
+                return None    
         while not postfixStack.isEmpty():
-            output.append(postfixStack.pop())
-        
+            op = postfixStack.pop()
+            if op == '(':
+                return None
+            output.append(op)    
         return ' '.join(output)
 
     @property
@@ -188,7 +235,7 @@ class Calculator:
         '''
             calculate must call _getPostfix
             calculate must create and use a Stack to compute the final result as shown in the video lecture
-            
+             
             >>> x=Calculator()
             >>> x.setExpr('4        + 3 -       2')
             >>> x.calculate
@@ -245,39 +292,10 @@ class Calculator:
             print("Argument error in calculate")
             return None
 
-        calcStack = Stack()   
-        postfix = self._getPostfix(self.__expr)
-        if postfix is None:
-            return None
+        calcStack = Stack()   # method must use calcStack to compute the  expression
 
-        calcStack = Stack()
-        tokens = postfix.split()
-
-        for token in tokens:
-            if self._isNumber(token):
-                calcStack.push(float(token))
-            else:
-                if len(calcStack) < 2:
-                    return None
-                val2 = calcStack.pop()
-                val1 = calcStack.pop()
-                
-                if token == '+':
-                    calcStack.push(val1 + val2)
-                elif token == '-':
-                    calcStack.push(val1 - val2)
-                elif token == '*':
-                    calcStack.push(val1 * val2)
-                elif token == '/':
-                    if val2 == 0:
-                        return None
-                    calcStack.push(val1 / val2)
-                elif token == '^':
-                    calcStack.push(val1 ** val2)
-
-        if len(calcStack) == 1:
-            return calcStack.pop()
-        return None
+        # YOUR CODE STARTS HERE
+        pass
 
 #=============================================== Part III ==============================================
 
@@ -355,7 +373,6 @@ class AdvancedCalculator:
         # YOUR CODE STARTS HERE
         pass
 
-    
     def calculateExpressions(self):
         self.states = {} 
         calcObj = Calculator()     # method must use calcObj to compute each expression
