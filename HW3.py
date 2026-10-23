@@ -291,11 +291,42 @@ class Calculator:
         if not isinstance(self.__expr,str) or len(self.__expr)<=0:
             print("Argument error in calculate")
             return None
-
-        calcStack = Stack()   # method must use calcStack to compute the  expression
-
-        # YOUR CODE STARTS HERE
-        pass
+        calcStack = Stack()   
+        postfix = self._getPostfix(self.__expr)
+        if postfix is None:
+            return None  
+        tokens = postfix.split()
+        for token in tokens:
+            if self._isNumber(token):
+                calcStack.push(float(token))
+            elif token in "+-*/^":
+                if calcStack.isEmpty():
+                    return None
+                val2 = calcStack.pop()
+                if calcStack.isEmpty():
+                    return None
+                val1 = calcStack.pop()
+                if token == '+':
+                    res = val1 + val2
+                elif token == '-':
+                    res = val1 - val2
+                elif token == '*':
+                    res = val1 * val2
+                elif token == '/':
+                    if val2 == 0:
+                        return None
+                    res = val1 / val2
+                elif token == '^':
+                    res = val1 ** val2
+                calcStack.push(res)
+            else:
+                return None   
+        if calcStack.isEmpty():
+            return None
+        res = calcStack.pop()
+        if not calcStack.isEmpty():
+            return None
+        return float(res)
 
 #=============================================== Part III ==============================================
 
