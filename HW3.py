@@ -385,9 +385,11 @@ class AdvancedCalculator:
             >>> C._isVariable('vol%2')
             False
         '''
-        # YOUR CODE STARTS HERE
-        pass
-       
+        if not isinstance(word, str) or len(word) == 0:
+            return False
+        if not word[0].isalpha():
+            return False
+        return word.isalnum()
 
     def _replaceVariables(self, expr):
         '''
@@ -401,23 +403,69 @@ class AdvancedCalculator:
             >>> C._replaceVariables('x2 - x1')
             '28.0 - 23.0'
         '''
-        # YOUR CODE STARTS HERE
-        pass
+        if not isinstance(expr, str):
+            return None
+        tokens = []
+        i = 0
+        n = len(expr)
+        while i < n:
+            char = expr[i]
+            if char.isalpha():
+                word = ''
+                while i < n and (expr[i].isalnum()):
+                    word += expr[i]
+                    i += 1
+                if self._isVariable(word):
+                    if word in self.states:
+                        tokens.append(str(self.states[word]))
+                    else:
+                        return None
+                else:
+                    return None
+            else:
+                tokens.append(char)
+                i += 1
+        return "".join(tokens)
 
     def calculateExpressions(self):
         self.states = {} 
-        calcObj = Calculator()     # method must use calcObj to compute each expression
-        # YOUR CODE STARTS HERE
-        pass
-
-
+        calcObj = Calculator()
+        self.states = {}
+        result = {}
+        lines = self.expressions.split(';')
+        for raw_line in lines:
+            line = raw_line.strip()
+            if line:
+                if line.startswith('return'):
+                    expr = line[6:].strip()
+                    replaced = self._replaceVariables(expr)
+                    if replaced is None:
+                        return None
+                    calcObj.setExpr(replaced)
+                    val = calcObj.calculate()
+                    if val is None:
+                        return None
+                    result['_return_'] = val
+                else:
+                    parts = line.split('=')
+                    if len(parts) != 2:
+                        return None
+                    var_name = parts[0].strip()
+                    expr = parts[1].strip()
+                    replaced = self._replaceVariables(expr)
+                    if replaced is None:
+                        return None
+                    calcObj.setExpr(replaced)
+                    val = calcObj.calculate()
+                    if val is None:
+                        return None
+                    self.states[var_name] = val
+                    result[line] = dict(self.states)
+        return result
+    
 def run_tests():
     import doctest
-
-    # Run tests in all docstrings
-    #doctest.testmod(verbose=True)
-    
-    # Run tests per function - Uncomment the next line to run doctest by function. Replace Stack with the name of the function you want to test
+    doctest.testmod(verbose=True)
     doctest.run_docstring_examples(Stack, globals(), name='HW3',verbose=True)   
 
 if __name__ == "__main__":
