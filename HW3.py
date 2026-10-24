@@ -428,10 +428,9 @@ class AdvancedCalculator:
         return "".join(tokens)
 
     def calculateExpressions(self):
-        self.states = {} 
-        calcObj = Calculator()
         self.states = {}
         result = {}
+        calc0bj = Calculator()  
         lines = self.expressions.split(';')
         for raw_line in lines:
             line = raw_line.strip()
@@ -441,8 +440,8 @@ class AdvancedCalculator:
                     replaced = self._replaceVariables(expr)
                     if replaced is None:
                         return None
-                    calcObj.setExpr(replaced)
-                    val = calcObj.calculate()
+                    calc0bj.setExpr(replaced)
+                    val = calc0bj.calculate()
                     if val is None:
                         return None
                     result['_return_'] = val
@@ -455,13 +454,14 @@ class AdvancedCalculator:
                     replaced = self._replaceVariables(expr)
                     if replaced is None:
                         return None
-                    calcObj.setExpr(replaced)
-                    val = calcObj.calculate()
+                    calc0bj.setExpr(replaced)
+                    val = calc0bj.calculate()
                     if val is None:
                         return None
                     self.states[var_name] = val
                     result[line] = dict(self.states)
         return result
+
     
 def run_tests():
     import doctest
