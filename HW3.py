@@ -428,7 +428,6 @@ class AdvancedCalculator:
         return "".join(tokens)
 
     def calculateExpressions(self):
-        breakpoint()
         self.states = {}
         result = {}
         calc0bj = Calculator()  
@@ -446,8 +445,7 @@ class AdvancedCalculator:
                     if val is None:
                         return None
                     result['_return_'] = val
-                else:
-                    # add if case for if it is a variable if it is none, ect 
+                else: 
                     parts = line.split('=')
                     if len(parts) != 2:
                         return None
@@ -465,7 +463,7 @@ class AdvancedCalculator:
                     self.states[var_name] = val
                     result[line] = dict(self.states)
         return result
- 
+
 def run_tests():
     import doctest
     doctest.testmod(verbose=True)
