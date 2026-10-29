@@ -442,7 +442,7 @@ class AdvancedCalculator:
                     if replaced is None:
                         return None
                     calc0bj.setExpr(replaced)
-                    val = calc0bj.calculate()
+                    val = calc0bj.calculate
                     if val is None:
                         return None
                     result['_return_'] = val
@@ -459,13 +459,13 @@ class AdvancedCalculator:
                     if replaced is None:
                         return None
                     calc0bj.setExpr(replaced)
-                    val = calc0bj.calculate()
+                    val = calc0bj.calculate
                     if val is None:
                         return None
                     self.states[var_name] = val
                     result[line] = dict(self.states)
         return result
-    
+ 
 def run_tests():
     import doctest
     doctest.testmod(verbose=True)
